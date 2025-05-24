@@ -13,6 +13,7 @@
 #define ERR_ARCH 100
 #define ERR_MEM 200
 #define ERR_LECTURA 300
+#define ERR_PARAM 400
 //#define REGISTROS_CSV 10000
 
 typedef struct{
@@ -23,14 +24,21 @@ typedef struct{
     char categoria[TAM_CATEGORIA];
 }Producto;
 
+typedef struct{
+    Producto * productos;
+    int cant;
+}vectorProductos;
+
 typedef void (*accion)(void * e, void * aux);
 
 //Retorna cantRegistros csv
-int leerCsvProductos(char * path, Producto * productos);
+int leerCsvProductos(char * path, vectorProductos * vector);
 
 //Tareas
-int ejecutarTarea(Producto * producto, accion);
+int ejecutarTarea(Producto * elemento, accion accion, void * aux);
 
-int liberarVectorProductos(Producto * productos);
+int liberarVectorProductos(vectorProductos * vector);
+
+void mostrarProducto(Producto * elemento);
 
 #endif // PRODUCTO_H

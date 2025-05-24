@@ -1,7 +1,7 @@
-#include <producto.h>
+#include "producto.h"
 
-int leerCsvProductos(char * path, Producto * productos){
-    FILE * pf = fopen(path, 'r+');
+int leerCsvProductos(char * path, vectorProductos * vector){
+    FILE * pf = fopen(path, "r+");
 
     if(pf == NULL){
         return ERR_ARCH;
@@ -10,18 +10,47 @@ int leerCsvProductos(char * path, Producto * productos){
     int cantReg, i = 0;
     fscanf(pf, "%d", &cantReg);
     
-    productos = malloc(cantReg * sizeof(Producto));
+    vector->productos = malloc(cantReg * sizeof(Producto));
 
-    if(productos == NULL){
+    if(vector->productos == NULL){
         fclose(pf);
         return ERR_MEM;
     }
 
-    while(!feof(pf)){
-        fscanf(pf, "%d;%49[^;];%f;%d;%29[^\n]\n", &productos[i].id, productos[i].nombre, &productos[i].precio, &productos[i].stock, productos[i].categoria);
+    while(!feof(pf) && i < cantReg){
+        fscanf(pf, "%d;%49[^;];%f;%d;%29[^\n]\n", &vector->productos[i].id, vector->productos[i].nombre, &vector->productos[i].precio, &vector->productos[i].stock, vector->productos[i].categoria);
         i++;
     }
     
     fclose(pf);
-    return i;
+    
+    vector->cant = i;
+    return OK;
 }
+
+int ejecutarTarea(Producto * elemento, accion accion, void * aux){
+    if(accion == NULL || elemento == NULL){
+        return ERR_PARAM;
+    }
+
+    accion(elemento, aux);
+    return OK;
+}
+
+int liberarVectorProductos(vectorProductos * vector){
+    if(vector == NULL){
+        return ERR_PARAM;
+    }
+
+    free(vector->productos);
+    return OK;
+}
+
+void mostrarProducto(Producto * elemento){
+    if(elemento == NULL){
+        return;
+    }
+
+    printf("ID: %d, Nombre: %s, Precio: %.2f, Stock: %d, Categoria: %s\n", elemento->id, elemento->nombre, elemento->precio, elemento->stock, elemento->categoria);
+}
+
