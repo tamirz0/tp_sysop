@@ -25,10 +25,15 @@ typedef struct{
 #define NOMBRE_ARCHIVO_CSV "test.csv"
 #define NOMBRE_SEMAFORO "miSemaforo"
 
-void tareaHijo1(void * ptr);
-void tareaHijo2(void * ptr);
-void tareaHijo3(void * ptr);
-void tareaHijo4(void * ptr);
+#define DEMORA_H1 2.0
+#define DEMORA_H2 1.5
+#define DEMORA_H3 1
+#define DEMORA_H4 0.5
+#define SEGUNDO_MS 1000000
+
+
+void tareaHijo(void * ptr, int numHijo, double demora, accion accion);
+
 void accionImprimirNombre(void * e, void * aux);
 
 int main(){
@@ -55,16 +60,16 @@ int main(){
         int hijo = fork();
         if(hijo == 0){
             if(i == 0){
-                tareaHijo1(ptr);
+                tareaHijo(ptr, 1, DEMORA_H1, accionImprimirNombre);
             }
             else if(i == 1){
-                tareaHijo2(ptr);
+                tareaHijo(ptr, 2, DEMORA_H2, accionImprimirNombre);
             }
             else if(i == 2){
-                tareaHijo3(ptr);
+                tareaHijo(ptr, 3, DEMORA_H3, accionImprimirNombre);
             }
             else if(i == 3){
-                tareaHijo4(ptr);
+                tareaHijo(ptr, 4, DEMORA_H4, accionImprimirNombre);
             }
             exit(0);
         }
@@ -97,6 +102,26 @@ void accionImprimirNombre(void * e, void * aux){
     fflush(stdout);
 }
 
+void tareaHijo(void * ptr, int numHijo, double demora, accion accion){
+    memoriaCompartida * memoria = (memoriaCompartida *)ptr;
+    int i = 0;
+    while(!memoria->fin){
+        if(memoria->fin) break;
+        usleep(demora * SEGUNDO_MS); // 2 segundos - proceso más lento
+        if(memoria->fin) break;
+        sem_wait(memoria->semaforo);
+        if(memoria->fin) {
+            sem_post(memoria->semaforo);
+            break;
+        }
+        accion(&memoria->vector.productos[i], &numHijo);
+        sem_post(memoria->semaforo);
+        i = (i + 1) % memoria->vector.cant;
+    }
+    exit(0);
+}
+
+/*
 void tareaHijo1(void * ptr){
     memoriaCompartida * memoria = (memoriaCompartida *)ptr;
     int i = 0;
@@ -176,3 +201,4 @@ void tareaHijo4(void * ptr){
     }
     exit(0);
 }
+*/  
