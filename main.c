@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 
+
 /*
     Lee el archivo CSV y guarda todos los productos en un vector Producto[].
     Copia ese vector a un bloque de memoria compartida.
@@ -33,6 +34,7 @@ typedef struct{
 
 
 void tareaHijo(void * ptr, int numHijo, double demora, accion accion);
+void tareaHijo4(void * ptr, char * categoria);
 
 void accionImprimirNombre(void * e, void * aux);
 
@@ -40,7 +42,7 @@ int main(){
     // 1 Guardar los productos en un vector
     vectorProductos vector;
     leerCsvProductos(NOMBRE_ARCHIVO_CSV, &vector);
-    
+
     // 2 Copiar el vector a un bloque de memoria compartida
     memoriaCompartida memoria;
     memoria.vector = vector;
@@ -69,7 +71,7 @@ int main(){
                 tareaHijo(ptr, 3, DEMORA_H3, accionImprimirNombre);
             }
             else if(i == 3){
-                tareaHijo(ptr, 4, DEMORA_H4, accionImprimirNombre);
+                tareaHijo4(ptr, "Accesorios");
             }
             exit(0);
         }
@@ -109,6 +111,9 @@ void tareaHijo(void * ptr, int numHijo, double demora, accion accion){
         if(memoria->fin) break;
         usleep(demora * SEGUNDO_MS); // 2 segundos - proceso más lento
         if(memoria->fin) break;
+
+        // Inicio de la zona critica
+
         sem_wait(memoria->semaforo);
         if(memoria->fin) {
             sem_post(memoria->semaforo);
@@ -116,8 +121,56 @@ void tareaHijo(void * ptr, int numHijo, double demora, accion accion){
         }
         accion(&memoria->vector.productos[i], &numHijo);
         sem_post(memoria->semaforo);
-        i = (i + 1) % memoria->vector.cant;
+
+        // Fin de la zona critica
+
+        if(i == memoria->vector.cant - 1){
+            i = 0;
+            printf("REINICIO == Hijo %d\n", numHijo);
+            fflush(stdout);
+        }
+        else{
+            i++;
+        }
     }
+    exit(0);
+}
+
+void tareaHijo4(void * ptr, char * categoria){
+    memoriaCompartida * memoria = (memoriaCompartida *)ptr;
+    int i = 0;
+    double acumulador = 0;
+    int cant = 0;
+    while(!memoria->fin){
+        if(memoria->fin) break;
+        usleep(500000); // 0.5 segundos - proceso más rápido
+        if(memoria->fin) break;
+        sem_wait(memoria->semaforo);
+        if(memoria->fin) {
+            sem_post(memoria->semaforo);
+            break;
+        }
+        // inicio accion
+        Producto * producto = &memoria->vector.productos[i];
+        if(strcmp(producto->categoria, categoria) == 0){
+            acumulador += (producto->precio * producto->stock);
+            cant++;
+        }
+        // fin accion
+        sem_post(memoria->semaforo);
+
+        if(i == memoria->vector.cant - 1){
+            i = 0;
+            printf("REINICIO == Hijo %d\n", 4);
+            //printf("Promedio del valor en inventario por producto de la categoria %s: %.2lf\n", categoria, acumulador / cant);
+            fflush(stdout);
+        }
+        else{
+            i++;
+        }
+    }
+    printf("Promedio del valor en inventario por producto de la categoria %s: %.2lf\n", categoria, acumulador / cant);
+    fflush(stdout);
     exit(0);
 }
 

@@ -19,7 +19,7 @@
 typedef struct{
     int id; // 1000 a 9999
     char nombre[TAM_NOMBRE]; 
-    float precio; // 1.00 a 9999.99
+    double precio; // 1.00 a 9999.99
     int stock; // 0 a 100
     char categoria[TAM_CATEGORIA];
 }Producto;
@@ -40,5 +40,7 @@ int ejecutarTarea(Producto * elemento, accion accion, void * aux);
 int liberarVectorProductos(vectorProductos * vector);
 
 void mostrarProducto(Producto * elemento);
+
+void mostrarVectorProductos(vectorProductos * vector);
 
 #endif // PRODUCTO_H

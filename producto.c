@@ -18,7 +18,7 @@ int leerCsvProductos(char * path, vectorProductos * vector){
     }
 
     while(!feof(pf) && i < cantReg){
-        fscanf(pf, "%d;%49[^;];%f;%d;%29[^\n]\n", &vector->productos[i].id, vector->productos[i].nombre, &vector->productos[i].precio, &vector->productos[i].stock, vector->productos[i].categoria);
+        fscanf(pf, "%d;%49[^;];%lf;%d;%29[^\n]\n", &vector->productos[i].id, vector->productos[i].nombre, &vector->productos[i].precio, &vector->productos[i].stock, vector->productos[i].categoria);
         i++;
     }
     
@@ -54,3 +54,12 @@ void mostrarProducto(Producto * elemento){
     printf("ID: %d, Nombre: %s, Precio: %.2f, Stock: %d, Categoria: %s\n", elemento->id, elemento->nombre, elemento->precio, elemento->stock, elemento->categoria);
 }
 
+void mostrarVectorProductos(vectorProductos * vector){
+    if(vector == NULL){
+        return;
+    }
+
+    for(int i = 0; i < vector->cant; i++){
+        mostrarProducto(&vector->productos[i]);
+    }
+}
