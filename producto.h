@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
+#define MAX_PRODUCTOS 100
 #define TAM_NOMBRE 50
 #define TAM_CATEGORIA 30
 #define CANT_CAMPOS
@@ -25,7 +25,7 @@ typedef struct{
 }Producto;
 
 typedef struct{
-    Producto * productos;
+    Producto productos[MAX_PRODUCTOS];
     int cant;
 }vectorProductos;
 
@@ -37,10 +37,10 @@ int leerCsvProductos(char * path, vectorProductos * vector);
 //Tareas
 int ejecutarTarea(Producto * elemento, accion accion, void * aux);
 
-int liberarVectorProductos(vectorProductos * vector);
-
 void mostrarProducto(Producto * elemento);
 
 void mostrarVectorProductos(vectorProductos * vector);
+
+void mostrarVector(Producto * vector, int cant);
 
 #endif // PRODUCTO_H

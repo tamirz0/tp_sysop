@@ -32,8 +32,13 @@ typedef struct{
 #define DEMORA_H4 0.5
 #define SEGUNDO_MS 1000000
 
+#define MAX_STOCK_AVISO 40
+#define MIN_STOCK_AVISO 30
+#define MAX_STOCK_REPOSICION 50
 
 void tareaHijo(void * ptr, int numHijo, double demora, accion accion);
+void tareaHijo2(void * ptr);
+void tareaHijo3(void * ptr);
 void tareaHijo4(void * ptr, char * categoria);
 
 void accionImprimirNombre(void * e, void * aux);
@@ -43,15 +48,14 @@ int main(){
     vectorProductos vector;
     leerCsvProductos(NOMBRE_ARCHIVO_CSV, &vector);
 
-    // 2 Copiar el vector a un bloque de memoria compartida
+    // 2 Preparar la memoria compartida
     memoriaCompartida memoria;
-    memoria.vector = vector;
+    memoria.vector = vector;  // Ahora podemos copiar directamente
     memoria.fin = false;
     memoria.semaforo = sem_open(NOMBRE_SEMAFORO, O_CREAT, 0600, 1);
 
     // 3 Crear el bloque de memoria compartida
-
-    void * ptr = crearBloqueMemoriaCompartida(&memoria , sizeof(memoriaCompartida));
+    void * ptr = crearBloqueMemoriaCompartida(&memoria, sizeof(memoriaCompartida));
     if(ptr == NULL){
         printf("Error al crear el bloque de memoria compartida\n");
         return 1;
@@ -65,10 +69,10 @@ int main(){
                 tareaHijo(ptr, 1, DEMORA_H1, accionImprimirNombre);
             }
             else if(i == 1){
-                tareaHijo(ptr, 2, DEMORA_H2, accionImprimirNombre);
+                tareaHijo2(ptr);
             }
             else if(i == 2){
-                tareaHijo(ptr, 3, DEMORA_H3, accionImprimirNombre);
+                tareaHijo3(ptr);
             }
             else if(i == 3){
                 tareaHijo4(ptr, "Accesorios");
@@ -79,7 +83,7 @@ int main(){
     
     printf("Presione Enter para finalizar...\n");
     getchar();
-    
+
     // Indicar a los hijos que terminen
     memoriaCompartida * mem = (memoriaCompartida *)ptr;
     mem->fin = true;
@@ -91,10 +95,11 @@ int main(){
     printf("Todos los hijos terminaron\n");
     
     // Liberar la memoria compartida
+    mostrarVectorProductos(&mem->vector);
+
     liberarBloqueMemoriaCompartida(ptr, sizeof(memoriaCompartida));
     sem_close(memoria.semaforo);
     sem_unlink(NOMBRE_SEMAFORO);
-    liberarVectorProductos(&vector);
 
     return 0;
 }
@@ -136,6 +141,76 @@ void tareaHijo(void * ptr, int numHijo, double demora, accion accion){
     exit(0);
 }
 
+void tareaHijo2(void * ptr){
+    memoriaCompartida * memoria = (memoriaCompartida *)ptr;
+    int i = 0;
+    while(!memoria->fin){
+        if(memoria->fin) break;
+        usleep(DEMORA_H2 * SEGUNDO_MS);
+        if(memoria->fin) break;
+        sem_wait(memoria->semaforo);
+        if(memoria->fin) {
+            sem_post(memoria->semaforo);
+            break;
+        }
+        // inicio accion
+        Producto * producto = &memoria->vector.productos[i];
+        if(producto->stock >= MAX_STOCK_AVISO){
+            printf("Hijo 2: Producto %s con SOBRESTOCK : %d\n", producto->nombre, producto->stock);
+            fflush(stdout);
+        }
+        // fin accion   
+        sem_post(memoria->semaforo);
+        if(i == memoria->vector.cant - 1){
+            i = 0;
+            printf("REINICIO == Hijo 2\n");
+            fflush(stdout);
+        }
+        else{
+            i++;
+        }
+    }
+    exit(0);
+}
+
+void tareaHijo3(void * ptr){
+    memoriaCompartida * memoria = (memoriaCompartida *)ptr;
+    int i = 0, nuevoStock;
+    while(!memoria->fin){
+        if(memoria->fin) break;
+        usleep(DEMORA_H3 * SEGUNDO_MS);
+        if(memoria->fin) break;
+        sem_wait(memoria->semaforo);
+        if(memoria->fin) {
+            sem_post(memoria->semaforo);
+            break;
+        }
+        // inicio accion
+        Producto * producto = &memoria->vector.productos[i];
+        if(producto->stock < MIN_STOCK_AVISO){
+            nuevoStock = MIN_STOCK_AVISO + (rand() % (MAX_STOCK_REPOSICION - MIN_STOCK_AVISO + 1));
+            printf("Hijo 3: Reposición de stock - Producto: %s\n", producto->nombre);
+            fflush(stdout);
+            printf("  Stock anterior: %d\n", producto->stock);
+            fflush(stdout);
+            producto->stock = nuevoStock;
+            printf("  Stock nuevo: %d\n", producto->stock);
+            fflush(stdout);
+        }
+        // fin accion   
+        sem_post(memoria->semaforo);
+        if(i == memoria->vector.cant - 1){
+            i = 0;
+            printf("REINICIO == Hijo 3\n");
+            fflush(stdout);
+        }
+        else{
+            i++;
+        }
+    }
+    exit(0);
+}
+
 void tareaHijo4(void * ptr, char * categoria){
     memoriaCompartida * memoria = (memoriaCompartida *)ptr;
     int i = 0;
@@ -143,7 +218,7 @@ void tareaHijo4(void * ptr, char * categoria){
     int cant = 0;
     while(!memoria->fin){
         if(memoria->fin) break;
-        usleep(500000); // 0.5 segundos - proceso más rápido
+        usleep(DEMORA_H4 * SEGUNDO_MS);
         if(memoria->fin) break;
         sem_wait(memoria->semaforo);
         if(memoria->fin) {
@@ -162,7 +237,6 @@ void tareaHijo4(void * ptr, char * categoria){
         if(i == memoria->vector.cant - 1){
             i = 0;
             printf("REINICIO == Hijo %d\n", 4);
-            //printf("Promedio del valor en inventario por producto de la categoria %s: %.2lf\n", categoria, acumulador / cant);
             fflush(stdout);
         }
         else{

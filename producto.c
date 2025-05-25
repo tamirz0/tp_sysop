@@ -10,11 +10,9 @@ int leerCsvProductos(char * path, vectorProductos * vector){
     int cantReg, i = 0;
     fscanf(pf, "%d", &cantReg);
     
-    vector->productos = malloc(cantReg * sizeof(Producto));
-
-    if(vector->productos == NULL){
+    if(cantReg > MAX_PRODUCTOS){
         fclose(pf);
-        return ERR_MEM;
+        return ERR_PARAM;
     }
 
     while(!feof(pf) && i < cantReg){
@@ -37,14 +35,6 @@ int ejecutarTarea(Producto * elemento, accion accion, void * aux){
     return OK;
 }
 
-int liberarVectorProductos(vectorProductos * vector){
-    if(vector == NULL){
-        return ERR_PARAM;
-    }
-
-    free(vector->productos);
-    return OK;
-}
 
 void mostrarProducto(Producto * elemento){
     if(elemento == NULL){
@@ -61,5 +51,15 @@ void mostrarVectorProductos(vectorProductos * vector){
 
     for(int i = 0; i < vector->cant; i++){
         mostrarProducto(&vector->productos[i]);
+    }
+}
+
+void mostrarVector(Producto * vector, int cant){
+    if(vector == NULL){
+        return;
+    }
+
+    for(int i = 0; i < cant; i++){
+        mostrarProducto(&vector[i]);
     }
 }
