@@ -14,12 +14,27 @@
     Fin del sistema.
 */
 
+/*
+    Comandos para ejecutar el programa:
+    make && ./programa categoriaVentas categoriaPromedio
+    
+    EJ : make && ./programa "Electronica" "Accesorios"
+ */
 
 #define NOMBRE_ARCHIVO_CSV "test.csv"
 #define NOMBRE_SEMAFORO "miSemaforo"
 
 
-int main(){
+int main(int argc, char * argv[]){
+
+    if(argc != 3){
+        printf("Error: Debe ingresar las categorias de los productos a procesar\n");
+        return 1;
+    }
+
+    char * categoriaVentas = argv[1];
+    char * categoriaPromedio = argv[2];
+
     // 1 Guardar los productos en un vector
     vectorProductos vector;
     leerCsvProductos(NOMBRE_ARCHIVO_CSV, &vector);
@@ -42,7 +57,7 @@ int main(){
         int hijo = fork();
         if(hijo == 0){
             if(i == 0){
-                tareaHijo1(ptr, "Electronica"); //Ventas
+                tareaHijo1(ptr, categoriaVentas); //Ventas
             }
             else if(i == 1){
                 tareaHijo2(ptr); //Aviso Stock alto
@@ -51,7 +66,7 @@ int main(){
                 tareaHijo3(ptr); //Reposicion de stock bajo
             }
             else if(i == 3){
-                tareaHijo4(ptr, "Accesorios"); //Promedio de valor en inventario por producto de la categoria
+                tareaHijo4(ptr, categoriaPromedio); //Promedio de valor en inventario por producto de la categoria
             }
             exit(0);
         }
