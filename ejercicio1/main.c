@@ -21,6 +21,17 @@
     EJ : make && ./programa "Electronica" "Accesorios"
  */
 
+/*
+    Comandos para monitorizar el programa:
+    ps aux | grep programa ### Ver procesos asociados al programa. USER PID %CPU %MEM VSZ RSS TTY STAT START TIME COMMAND
+    ps -eo pid,ppid,comm | grep programa ### Ver procesos asociados al programa. PID PPID COMANDO
+    ps -ejH  ### Ver jerarquía de procesos
+    
+    pmap <PID> ### Ver uso de memoria del proceso, aparece miMemoria con flags RWS (read, write, shared)
+    htop ### Ver procesos y uso de memoria de forma interactiva (este es genial)
+    ls /dev/shm/sem.* ### Ver semaforos abiertos (al finalizar el programa, se debe eliminar el semáforo)
+*/
+
 #define NOMBRE_ARCHIVO_CSV "test.csv"
 #define NOMBRE_SEMAFORO "miSemaforo"
 
