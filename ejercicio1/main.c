@@ -1,4 +1,4 @@
-#include "producto.h"
+#include "../lib_producto/producto.h"
 #include "paralelismo.h"
 
 /*

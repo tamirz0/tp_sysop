@@ -31,6 +31,8 @@ typedef struct{
 
 typedef void (*accion)(void * e, void * aux);
 
+////////////////////////////////////////////////////////////
+////////////////// EJERCICIO 1 ////////////////////////////
 //Retorna cantRegistros csv
 int leerCsvProductos(char * path, vectorProductos * vector);
 
@@ -42,5 +44,9 @@ void mostrarProducto(Producto * elemento);
 void mostrarVectorProductos(vectorProductos * vector);
 
 void mostrarVector(Producto * vector, int cant);
+
+////////////////////////////////////////////////////////////
+////////////////// EJERCICIO 2 ////////////////////////////
+
 
 #endif // PRODUCTO_H

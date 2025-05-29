@@ -1,7 +1,7 @@
 #ifndef PARALELISMO_H
 #define PARALELISMO_H
 
-#include "producto.h"
+#include "../lib_producto/producto.h"
 #include <string.h>
 #include <semaphore.h>
 #include <stdbool.h>

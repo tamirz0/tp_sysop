@@ -1,8 +1,8 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -g
+CFLAGS = -Wall -Wextra -g -I../lib_producto
 LDFLAGS = -pthread -lrt
 
-SRCS = main.c producto.c paralelismo.c
+SRCS = main.c ../lib_producto/producto.c paralelismo.c
 OBJS = $(SRCS:.c=.o)
 TARGET = programa
 
