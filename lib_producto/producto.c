@@ -1,3 +1,5 @@
+#include <string.h>
+#include <stdlib.h>
 #include "producto.h"
 
 int leerCsvProductos(char * path, vectorProductos * vector){
@@ -62,4 +64,81 @@ void mostrarVector(Producto * vector, int cant){
     for(int i = 0; i < cant; i++){
         mostrarProducto(&vector[i]);
     }
+}
+
+int serializar(Producto * elemento, char * cadena){
+    if(elemento == NULL){
+        return ERR_PARAM;
+    }
+
+    sprintf(cadena, "%4d;%s;%.2lf;%03d;%s", elemento->id, elemento->nombre, elemento->precio, elemento->stock, elemento->categoria);
+    // 4 + 49 + 7 + 3 + 29 + 1 = 93
+    return OK;
+}
+
+int deSerializar(Producto * elemento, char * cadena){
+    if(elemento == NULL){
+        return ERR_PARAM;
+    }
+
+    sscanf(cadena, "%d;%[^;];%lf;%d;%[^\n]", &elemento->id, elemento->nombre, &elemento->precio, &elemento->stock, elemento->categoria);
+    return OK;
+}
+
+FILE * abrirArchivo(char * path){
+    FILE * pf = fopen(path, "a+");
+
+    if(pf == NULL){
+        return NULL;
+    }
+
+    rewind(pf);
+    return pf;
+}
+
+int buscarId(FILE * pf, int id){
+    Producto producto;
+    bool encontrado = false;
+    int i = 0;
+    rewind(pf);
+    while(!feof(pf) && !encontrado){
+        fscanf(pf, "%d;%[^;];%lf;%d;%[^\n]", &producto.id, producto.nombre, &producto.precio, &producto.stock, producto.categoria);
+        if(producto.id == id){
+            encontrado = true;
+        }
+        else{
+            i++;
+        }
+    }
+
+    return i;
+}
+
+int buscarProducto(FILE * pf, Producto * producto){
+    int i = buscarId(pf, producto->id);
+    if(i == -1){
+        return ERR_PARAM;
+    }
+
+    // BUSCO EN EL CSV
+    rewind(pf); // Volvemos al inicio del archivo
+    
+    // Saltamos las líneas hasta llegar a la deseada
+    for(int j = 0; j < i; j++) {
+        if(fscanf(pf, "%*[^\n]\n") == EOF) {
+            return ERR_PARAM;
+        }
+    }
+    
+    // Leemos la línea que nos interesa
+    if(fscanf(pf, "%d;%[^;];%lf;%d;%[^\n]\n", 
+        &producto->id, 
+        producto->nombre, 
+        &producto->precio, 
+        &producto->stock, 
+        producto->categoria) == 5) {
+        return OK;
+    }
+    
+    return ERR_PARAM;
 }
