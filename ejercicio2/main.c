@@ -1,78 +1,84 @@
 #include "../lib_producto/producto.h"
+#include <stdio.h>
 #include <string.h>
-int main(){
-    /*Producto producto;
-    FILE * pf = abrirArchivo("test.csv");
-    if(pf == NULL){
-        printf("Error al abrir el archivo\n");
-        return 1;
-    }
-    
-    producto.id = 9999;
-    int i = buscarProducto(pf, &producto);
-    if(i == ERR_PARAM){
-        printf("Error al buscar el producto\n");
-        return 1;
-    }
-    mostrarProducto(&producto);
 
-    Producto producto2;
-    producto2.id = 9999;
-    strcpy(producto2.nombre, "Producto 2");
-    producto2.precio = 20.0;
-    producto2.stock = 20;
-    strcpy(producto2.categoria, "Categoria 2");
-
-    agregarProducto(pf, &producto2);
-
-
-
-    cerrarArchivo(pf);*/
-
-    // Test serializar y deSerializar
-    /*
-    Producto producto, productoDeSerializado;
-    producto.id = 9999;
-    strcpy(producto.nombre, "Producto 2");
-    producto.precio = 20.0;
-    producto.stock = 20;
-    strcpy(producto.categoria, "Categoria 2");
-
+void testSerializacion(){
+    printf("\n=== Test de Serialización ===\n");
+    Producto producto;
+    producto.id = 1001;
+    strcpy(producto.nombre, "Laptop Gamer");
+    producto.precio = 1299.99;
+    producto.stock = 10;
+    strcpy(producto.categoria, "Electronica");
 
     char cadena[TAM_CADENA_SERIALIZADA];
-    serializar(&producto, cadena);
-    printf("Cadena serializada: \n%s\n", cadena);
-
-    deSerializar(&productoDeSerializado, cadena);
-    mostrarProducto(&productoDeSerializado);
-    */
-
-    // Test eliminarProducto
-    Producto producto;
-    producto.id = 1010;
-    FILE * pf = abrirArchivo("test.csv");
-    if(pf == NULL){
-        printf("Error al abrir el archivo\n");
-        return 1;
-    }
-    
-    int i = eliminarProducto(pf, &producto, "test.csv");
-    if(i == ERR_PARAM){
-        printf("Error al eliminar el producto\n");
-        return 1;
-    }
-
+    int r = serializar(&producto, cadena);
+    printf("Serialización: %s\n", r == OK ? "OK" : "ERROR");
+    printf("Cadena serializada: %s\n", cadena);
 
     Producto producto2;
-    producto2.id = 1010;
-    strcpy(producto2.nombre, "Producto 2");
-    producto2.precio = 20.0;
-    producto2.stock = 20;
-    strcpy(producto2.categoria, "Categoria 2");
+    r = deSerializar(&producto2, cadena);
+    printf("Deserialización: %s\n", r == OK ? "OK" : "ERROR");
+    printf("Producto deserializado: ID=%d, Nombre=%s, Precio=%.2f, Stock=%d, Categoria=%s\n",
+           producto2.id, producto2.nombre, producto2.precio, producto2.stock, producto2.categoria);
+}
 
-    agregarProducto(pf, &producto2);
+void testArchivo(){
+    printf("\n=== Test de Archivo ===\n");
+    Archivo arch;
+    int r = abrirArchivo(&arch, "test.csv");
+    printf("Abrir archivo: %s\n", r == OK ? "OK" : "ERROR");
 
-    cerrarArchivo(pf);
+    // Test agregar producto
+    Producto producto;
+    producto.id = 1011;
+    strcpy(producto.nombre, "Nuevo Producto");
+    producto.precio = 199.99;
+    producto.stock = 5;
+    strcpy(producto.categoria, "Accesorios");
+
+    r = agregarProducto(&arch, &producto);
+    printf("Agregar producto: %s\n", r == OK ? "OK" : "ERROR");
+
+    // Test buscar producto
+    r = buscarProducto(&arch, &producto);
+    printf("Buscar producto: %s\n", r == OK ? "OK" : "ERROR");
+    if(r == OK){
+        printf("Producto encontrado: ID=%d, Nombre=%s\n", producto.id, producto.nombre);
+    }
+
+    // Test modificar producto
+    producto.precio = 299.99;
+    producto.stock = 15;
+    r = modificarProducto(&arch, &producto);
+    printf("Modificar producto: %s\n", r == OK ? "OK" : "ERROR");
+
+    // Verificar modificación
+    r = buscarProducto(&arch, &producto);
+    if(r == OK){
+        printf("Producto modificado: ID=%d, Precio=%.2f, Stock=%d\n", 
+               producto.id, producto.precio, producto.stock);
+    }
+
+    // Test eliminar producto
+    r = eliminarProducto(&arch, &producto);
+    printf("Eliminar producto: %s\n", r == OK ? "OK" : "ERROR");
+
+    // Verificar eliminación
+    r = buscarProducto(&arch, &producto);
+    printf("Buscar producto eliminado: %s\n", r == ERR_PARAM ? "OK (no encontrado)" : "ERROR");
+
+    cerrarArchivo(&arch);
+}
+
+int main(){
+    printf("=== Iniciando tests del ejercicio 2 ===\n");
+    
+    testSerializacion();
+    testArchivo();
+    
+    printf("\n=== Tests completados ===\n");
+    return 0;
 }
 
 /*
@@ -80,3 +86,4 @@ int main(){
     gcc -o programa main.c ../lib_producto/producto.c
     ./programa
 */
+

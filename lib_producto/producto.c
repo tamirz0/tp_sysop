@@ -86,24 +86,28 @@ int deSerializar(Producto * elemento, char * cadena){
     return OK;
 }
 
-FILE * abrirArchivo(char * path){
-    FILE * pf = fopen(path, "a+");
-
-    if(pf == NULL){
-        return NULL;
+int abrirArchivo(Archivo * arch, char * path){
+    if(arch == NULL){
+        return ERR_PARAM;
     }
 
-    rewind(pf);
-    return pf;
+    arch->pf = fopen(path, "a+");
+    if(arch->pf == NULL){
+        return ERR_ARCH;
+    }
+
+    
+    strcpy(arch->path, path);
+    return OK;
 }
 
-int buscarId(FILE * pf, int id){
+int buscarId(Archivo * arch, int id){
     Producto producto;
     bool encontrado = false;
     int i = 0;
-    rewind(pf);
-    while(!feof(pf) && !encontrado){
-        fscanf(pf, "%d;%[^;];%lf;%d;%[^\n]", &producto.id, producto.nombre, &producto.precio, &producto.stock, producto.categoria);
+    rewind(arch->pf);
+    while(!feof(arch->pf) && !encontrado){
+        fscanf(arch->pf, "%d;%[^;];%lf;%d;%[^\n]", &producto.id, producto.nombre, &producto.precio, &producto.stock, producto.categoria);
         if(producto.id == id){
             encontrado = true;
         }
@@ -115,24 +119,21 @@ int buscarId(FILE * pf, int id){
     return encontrado ? i : -1;
 }
 
-int buscarProducto(FILE * pf, Producto * producto){
-    int i = buscarId(pf, producto->id);
+int buscarProducto(Archivo * arch, Producto * producto){
+    int i = buscarId(arch, producto->id);
     if(i == -1){
         return ERR_PARAM;
     }
 
-    // BUSCO EN EL CSV
-    rewind(pf); // Volvemos al inicio del archivo
+    rewind(arch->pf);
     
-    // Saltamos las líneas hasta llegar a la deseada
     for(int j = 0; j < i; j++) {
-        if(fscanf(pf, "%*[^\n]\n") == EOF) {
+        if(fscanf(arch->pf, "%*[^\n]\n") == EOF) {
             return ERR_PARAM;
         }
     }
     
-    // Leemos la línea que nos interesa
-    if(fscanf(pf, "%d;%[^;];%lf;%d;%[^\n]\n", 
+    if(fscanf(arch->pf, "%d;%[^;];%lf;%d;%[^\n]\n", 
         &producto->id, 
         producto->nombre, 
         &producto->precio, 
@@ -144,37 +145,37 @@ int buscarProducto(FILE * pf, Producto * producto){
     return ERR_PARAM;
 }
 
-int agregarProducto(FILE * pf, Producto * producto){
-    if(pf == NULL || producto == NULL){
+int agregarProducto(Archivo * arch, Producto * producto){
+    if(arch == NULL || producto == NULL){
         return ERR_PARAM;
     }
     
-    if(buscarId(pf, producto->id) != -1){
+    if(buscarId(arch, producto->id) != -1){
         return ERR_DUPLICADO;
     }
 
-    fseek(pf, -1, SEEK_END);
+    fseek(arch->pf, -1, SEEK_END);
 
     char c;
-    fscanf(pf, "%c", &c);
+    fscanf(arch->pf, "%c", &c);
     if(c != '\n'){
-        fprintf(pf, "\n");
+        fprintf(arch->pf, "\n");
     }
 
-    fprintf(pf, "%d;%s;%.2lf;%d;%s", producto->id, producto->nombre, producto->precio, producto->stock, producto->categoria);
+    fprintf(arch->pf, "%d;%s;%.2lf;%d;%s", producto->id, producto->nombre, producto->precio, producto->stock, producto->categoria);
     return OK;
 }
 
-int eliminarProducto(FILE * pf, Producto * producto, char * path){
-    if(pf == NULL || producto == NULL){
+int eliminarProducto(Archivo * arch, Producto * producto){
+    if(arch == NULL || producto == NULL){
         return ERR_PARAM;
     }
-    int i = buscarId(pf, producto->id);
+    int i = buscarId(arch, producto->id);
     if(i == -1){
-        return ERR_PARAM;
+        return ERR_NO_ENCONTRADO;
     }
 
-    rewind(pf);
+    rewind(arch->pf);
 
     char * archAux = "archAux.csv";
     FILE * pfAux = fopen(archAux, "w");
@@ -183,27 +184,40 @@ int eliminarProducto(FILE * pf, Producto * producto, char * path){
     }
 
     Producto productoAux;
-    while(fscanf(pf, "%d;%[^;];%lf;%d;%[^\n]\n", &productoAux.id, productoAux.nombre, &productoAux.precio, &productoAux.stock, productoAux.categoria) == 5){
+    while(fscanf(arch->pf, "%d;%[^;];%lf;%d;%[^\n]\n", &productoAux.id, productoAux.nombre, &productoAux.precio, &productoAux.stock, productoAux.categoria) == 5){
         if(productoAux.id != producto->id){
             fprintf(pfAux, "%d;%s;%.2lf;%d;%s\n", productoAux.id, productoAux.nombre, productoAux.precio, productoAux.stock, productoAux.categoria);
         }
     }
     
-    cerrarArchivo(pfAux);
-    cerrarArchivo(pf);
+    fclose(pfAux);
+    cerrarArchivo(arch);
 
-    remove(path);
-    rename(archAux, path);
+    remove(arch->path);
+    rename(archAux, arch->path);
 
-    pf = abrirArchivo(path);
-    if(pf == NULL){
+    arch->pf = fopen(arch->path, "a+");
+    if(arch->pf == NULL){
         return ERR_ARCH;
     }
 
     return OK;
 }
 
-void cerrarArchivo(FILE * pf){
-    fclose(pf);
-    pf = NULL;
+int modificarProducto(Archivo * arch, Producto * producto){
+    if(arch == NULL || producto == NULL){
+        return ERR_PARAM;
+    }
+
+    eliminarProducto(arch, producto);
+    agregarProducto(arch, producto);
+
+    return OK;
+}
+
+void cerrarArchivo(Archivo * arch){
+    if(arch != NULL){
+        fclose(arch->pf);
+        arch->pf = NULL;
+    }
 }

@@ -10,6 +10,7 @@
 #define TAM_CATEGORIA 30
 #define CANT_CAMPOS 5
 #define TAM_CADENA_SERIALIZADA 100
+#define TAM_PATH 100
 
 #define OK 0
 #define ERR_ARCH 100
@@ -17,6 +18,7 @@
 #define ERR_LECTURA 300
 #define ERR_PARAM 400
 #define ERR_DUPLICADO 500
+#define ERR_NO_ENCONTRADO 600
 //#define REGISTROS_CSV 10000
 
 typedef struct{
@@ -32,20 +34,21 @@ typedef struct{
     int cant;
 }vectorProductos;
 
+typedef struct{
+    FILE * pf;
+    char path[TAM_PATH];
+}Archivo;
+
 typedef void (*accion)(void * e, void * aux);
 
 ////////////////////////////////////////////////////////////
 ////////////////// EJERCICIO 1 ////////////////////////////
 //Retorna cantRegistros csv
 int leerCsvProductos(char * path, vectorProductos * vector);
-
 //Tareas
 int ejecutarTarea(Producto * elemento, accion accion, void * aux);
-
 void mostrarProducto(Producto * elemento);
-
 void mostrarVectorProductos(vectorProductos * vector);
-
 void mostrarVector(Producto * vector, int cant);
 
 ////////////////////////////////////////////////////////////
@@ -53,13 +56,11 @@ void mostrarVector(Producto * vector, int cant);
 int serializar(Producto * elemento, char * cadena);
 int deSerializar(Producto * elemento, char * cadena);
 
-FILE * abrirArchivo(char * path);
-int buscarProducto(FILE * pf, Producto * producto);
-int agregarProducto(FILE * pf, Producto * producto);
-int eliminarProducto(FILE * pf, Producto * producto, char * path);
-void cerrarArchivo(FILE * pf);
-
-// CERRAR ARCHIVO FCLOSE !!!
-
+int abrirArchivo(Archivo * arch, char * path);
+int buscarProducto(Archivo * arch, Producto * producto);
+int agregarProducto(Archivo * arch, Producto * producto);
+int eliminarProducto(Archivo * arch, Producto * producto);
+int modificarProducto(Archivo * arch, Producto * producto);
+void cerrarArchivo(Archivo * arch);
 
 #endif // PRODUCTO_H
