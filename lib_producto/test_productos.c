@@ -83,7 +83,7 @@ int main(){
 
 /*
     Para ejecutar el programa:
-    gcc -o programa main.c ../lib_producto/producto.c
-    ./programa
+    gcc -o test_productos test_productos.c ../lib_producto/producto.c
+    ./test_productos
 */
 
