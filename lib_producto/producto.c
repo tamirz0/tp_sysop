@@ -1,5 +1,6 @@
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include "producto.h"
 
 int leerCsvProductos(char * path, vectorProductos * vector){
@@ -71,7 +72,7 @@ int serializar(Producto * elemento, char * cadena){
         return ERR_PARAM;
     }
 
-    sprintf(cadena, "%4d;%s;%.2lf;%03d;%s", elemento->id, elemento->nombre, elemento->precio, elemento->stock, elemento->categoria);
+    sprintf(cadena, "%4d|%s|%.2lf|%03d|%s", elemento->id, elemento->nombre, elemento->precio, elemento->stock, elemento->categoria);
     // 4 + 49 + 7 + 3 + 29 + 1 = 93
     return OK;
 }
@@ -81,7 +82,7 @@ int deSerializar(Producto * elemento, char * cadena){
         return ERR_PARAM;
     }
 
-    sscanf(cadena, "%d;%[^;];%lf;%d;%[^\n]", &elemento->id, elemento->nombre, &elemento->precio, &elemento->stock, elemento->categoria);
+    sscanf(cadena, "%d|%[^|]|%lf|%d|%[^\n]", &elemento->id, elemento->nombre, &elemento->precio, &elemento->stock, elemento->categoria);
     return OK;
 }
 
@@ -111,7 +112,7 @@ int buscarId(FILE * pf, int id){
         }
     }
 
-    return i;
+    return encontrado ? i : -1;
 }
 
 int buscarProducto(FILE * pf, Producto * producto){
@@ -141,4 +142,68 @@ int buscarProducto(FILE * pf, Producto * producto){
     }
     
     return ERR_PARAM;
+}
+
+int agregarProducto(FILE * pf, Producto * producto){
+    if(pf == NULL || producto == NULL){
+        return ERR_PARAM;
+    }
+    
+    if(buscarId(pf, producto->id) != -1){
+        return ERR_DUPLICADO;
+    }
+
+    fseek(pf, -1, SEEK_END);
+
+    char c;
+    fscanf(pf, "%c", &c);
+    if(c != '\n'){
+        fprintf(pf, "\n");
+    }
+
+    fprintf(pf, "%d;%s;%.2lf;%d;%s", producto->id, producto->nombre, producto->precio, producto->stock, producto->categoria);
+    return OK;
+}
+
+int eliminarProducto(FILE * pf, Producto * producto, char * path){
+    if(pf == NULL || producto == NULL){
+        return ERR_PARAM;
+    }
+    int i = buscarId(pf, producto->id);
+    if(i == -1){
+        return ERR_PARAM;
+    }
+
+    rewind(pf);
+
+    char * archAux = "archAux.csv";
+    FILE * pfAux = fopen(archAux, "w");
+    if(pfAux == NULL){
+        return ERR_ARCH;
+    }
+
+    Producto productoAux;
+    while(fscanf(pf, "%d;%[^;];%lf;%d;%[^\n]\n", &productoAux.id, productoAux.nombre, &productoAux.precio, &productoAux.stock, productoAux.categoria) == 5){
+        if(productoAux.id != producto->id){
+            fprintf(pfAux, "%d;%s;%.2lf;%d;%s\n", productoAux.id, productoAux.nombre, productoAux.precio, productoAux.stock, productoAux.categoria);
+        }
+    }
+    
+    cerrarArchivo(pfAux);
+    cerrarArchivo(pf);
+
+    remove(path);
+    rename(archAux, path);
+
+    pf = abrirArchivo(path);
+    if(pf == NULL){
+        return ERR_ARCH;
+    }
+
+    return OK;
+}
+
+void cerrarArchivo(FILE * pf){
+    fclose(pf);
+    pf = NULL;
 }

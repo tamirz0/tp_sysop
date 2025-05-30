@@ -16,6 +16,7 @@
 #define ERR_MEM 200
 #define ERR_LECTURA 300
 #define ERR_PARAM 400
+#define ERR_DUPLICADO 500
 //#define REGISTROS_CSV 10000
 
 typedef struct{
@@ -54,6 +55,10 @@ int deSerializar(Producto * elemento, char * cadena);
 
 FILE * abrirArchivo(char * path);
 int buscarProducto(FILE * pf, Producto * producto);
+int agregarProducto(FILE * pf, Producto * producto);
+int eliminarProducto(FILE * pf, Producto * producto, char * path);
+void cerrarArchivo(FILE * pf);
+
 // CERRAR ARCHIVO FCLOSE !!!
 
 
