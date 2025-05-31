@@ -26,9 +26,27 @@
 #define MAX_CADENA 1024
 #define TIMEOUT_PRIMERA_LECTURA 1
 #define ESPERA_MONITOR_FINALIZACION 1
+#define COMANDO_SALIR "/salir"
+
+typedef enum codigo_comunicacion{
+    ERROR_ENVIAR_MENSAJE,
+    ERROR_ENVIAR_CONEXION_CERRADA,
+    ERROR_LEER_CONEXION_CERRADA,
+    ERROR_LEER_MENSAJE,
+    ENVIAR_CORRECTO,
+    LEER_CORRECTO
+}CodigoComunicacion;
+
+typedef struct{
+    char buffer[MAX_CADENA];
+    int socket;
+    CodigoComunicacion codigo;
+}Mensaje;
 
 int crearSocketServidor();
 int crearSocketCliente();
+bool enviarMensaje(Mensaje *mensaje);
+bool leerMensaje(Mensaje *mensaje);
 
 
 

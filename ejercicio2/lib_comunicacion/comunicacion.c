@@ -53,3 +53,32 @@ int crearSocketCliente(){
 
     return socketCliente;
 }
+
+bool enviarMensaje(Mensaje *mensaje){
+    int bytesEnviados = write(mensaje->socket, mensaje->buffer, strlen(mensaje->buffer));
+    if(bytesEnviados <= 0){
+        if(errno == EPIPE){
+            mensaje->codigo = ERROR_ENVIAR_CONEXION_CERRADA;
+        }else{
+            mensaje->codigo = ERROR_ENVIAR_MENSAJE;
+        }
+        return false;
+    }
+    mensaje->codigo = ENVIAR_CORRECTO;
+    return true;
+}
+
+bool leerMensaje(Mensaje *mensaje){
+    int bytesRecibidos = read(mensaje->socket, mensaje->buffer, sizeof(mensaje->buffer));
+    if(bytesRecibidos == 0){
+        mensaje->codigo = ERROR_LEER_CONEXION_CERRADA;
+        return false;
+    }
+    if(bytesRecibidos < 0){
+        mensaje->codigo = ERROR_LEER_MENSAJE;
+        return false;
+    }
+    mensaje->buffer[bytesRecibidos] = '\0';
+    mensaje->codigo = LEER_CORRECTO;
+    return true;
+}

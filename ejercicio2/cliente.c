@@ -28,52 +28,60 @@ int main(){
 
     printf("Conectado al servidor\nEsperando turno...\n");
     
-    char buffer[MAX_CADENA];
-    buffer[0] = 0;
+    Mensaje mensaje;
+    mensaje.socket = socketCliente;
 
-    read(socketCliente, buffer, sizeof(buffer));
-    buffer[strlen(buffer)] = 0;
+    if(!leerMensaje(&mensaje)){
+        printf("Error al obtener turno\n");
+        close(socketCliente);
+        return EXIT_FAILURE;
+    }
+
     printf("Turno obtenido\nComenzando a enviar mensajes...\n");
     
-    while(strcmp(buffer, "salir") != 0){
-        printf("Ingrese un mensaje (o salir): ");
-        fgets(buffer, sizeof(buffer), stdin);
-        buffer[strcspn(buffer, "\n")] = 0;
-
-        if(strcmp(buffer, "salir") == 0){
-            printf("Saliendo del cliente\n");
-            int bytesEnviados = write(socketCliente, buffer, strlen(buffer));
-            if (bytesEnviados <= 0){
-                perror("Error al enviar mensaje de salida");
-            }
-            printf("Conexión cerrada\n");
-            close(socketCliente);
-            return EXIT_SUCCESS;
-        }
-
-        int bytesEnviados = write(socketCliente, buffer, strlen(buffer));
-        if (bytesEnviados <= 0){
-            perror("Error al enviar datos");
-            close(socketCliente);
-            return EXIT_FAILURE;
-        }
-        buffer[bytesEnviados] = '\0';
-        printf("CLIENTE: %s\n", buffer);
-
-        int bytesRecibidos = read(socketCliente, buffer, sizeof(buffer) - 1);
-        if(bytesRecibidos == 0){
-            printf("Conexión cerrada\n");
-            close(socketCliente);
-            return EXIT_SUCCESS;
-        }
+    while(strcmp(mensaje.buffer, COMANDO_SALIR) != 0){
         
-        if (bytesRecibidos < 0){
-            perror("Error al recibir datos");
+        printf("Ingrese un mensaje (o %s): ", COMANDO_SALIR);
+        fgets(mensaje.buffer, sizeof(mensaje.buffer), stdin);
+        mensaje.buffer[strcspn(mensaje.buffer, "\n")] = 0;
+
+        if(strcmp(mensaje.buffer, COMANDO_SALIR) == 0){
+            printf("Saliendo del cliente\n");
+
+            if(!enviarMensaje(&mensaje)){
+                printf("Error al enviar mensaje de salida\n");
+                close(socketCliente);
+                return EXIT_FAILURE;
+            }
+            
+            close(socketCliente);
+            printf("Conexión cerrada\n");
+            return EXIT_SUCCESS;
+        }
+
+        if(!enviarMensaje(&mensaje)){
+            printf("Error al enviar mensaje\n");
             close(socketCliente);
             return EXIT_FAILURE;
         }
-        buffer[bytesRecibidos] = '\0';
-        printf("SERVIDOR: %s\n", buffer);
+
+        if(!leerMensaje(&mensaje)){
+            printf("Error al recibir mensaje\n");
+            if(mensaje.codigo == ERROR_LEER_CONEXION_CERRADA){
+                printf("Conexión cerrada\n");
+                close(socketCliente);
+                return EXIT_SUCCESS;
+            }
+            if(mensaje.codigo == ERROR_LEER_MENSAJE){
+                printf("Error al recibir mensaje\n");
+                close(socketCliente);
+                return EXIT_FAILURE;
+            }
+            close(socketCliente);
+            return EXIT_FAILURE;
+        }
+
+        printf("SERVIDOR %d recibio: %s\n", socketCliente, mensaje.buffer);
     }
 
     close(socketCliente);

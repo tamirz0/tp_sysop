@@ -22,11 +22,12 @@ void cerrarServidorSigInt(int sig);
 int main(){
     signal(SIGINT, cerrarServidorSigInt);
     signal(SIGPIPE, SIG_IGN);
-    socketServidor = crearSocketServidor();
     pthread_t thread[MAX_CLIENTES];
     pthread_t threadMonitor;
     bool primerCliente = true;
     sem_init(&semaforoHilosDisponibles, 0, MAX_CLIENTES);
+
+    socketServidor = crearSocketServidor();
     if (socketServidor == -1){
         perror("Error al crear el socket servidor");
         return EXIT_FAILURE;
@@ -76,59 +77,65 @@ int main(){
 void *manejarCliente(void *arg){
     int socketCliente = *(int *)arg;
     free(arg);
-    printf("Cliente conectado\n");
-    char buffer[MAX_CADENA];
-    char bufferEnvio[MAX_CADENA + 50];
-    buffer[0] = 0;
 
+    Mensaje mensaje;
+    mensaje.socket = socketCliente;
+
+    char bufferEnvio[MAX_CADENA + sizeof("###  ###")];
+    bufferEnvio[0] = 0;
+
+    
     // Mientras no envie /salir, recibir datos
-    while(strcmp(buffer, "salir") != 0){
-        int bytesRecibidos = read(socketCliente, buffer, sizeof(buffer) - 1);
-        if (bytesRecibidos < 0){
-            perror("Error al recibir datos");
-            break;
-        }
-        if(bytesRecibidos == 0){
-            printf("Cliente %d desconectado\n", socketCliente);
-            break;
-        }
-        buffer[bytesRecibidos] = '\0';
-        printf("CLIENTE: %s\n", buffer);
+    while(strcmp(mensaje.buffer, COMANDO_SALIR) != 0){
 
-        sprintf(bufferEnvio, "RECIBIDO: %s", buffer);
-        int bytesEnviados = write(socketCliente, bufferEnvio, strlen(bufferEnvio));
-        if (bytesEnviados <= 0){
-            if(errno == EPIPE){
+        if(!leerMensaje(&mensaje)){
+            if(mensaje.codigo == ERROR_LEER_CONEXION_CERRADA){
                 printf("Cliente %d desconectado\n", socketCliente);
                 break;
             }
-            perror("Error al enviar datos");
+            if(mensaje.codigo == ERROR_LEER_MENSAJE){
+                printf("Error al recibir mensaje\n");
+            }
+            close(socketCliente);
             break;
         }
 
-        bufferEnvio[bytesEnviados] = '\0';
-        printf("SERVIDOR: %s\n", bufferEnvio);
+        if(strcmp(mensaje.buffer, COMANDO_SALIR) != 0){
+            printf("CLIENTE %d envió: %s\n", socketCliente, mensaje.buffer);
+        }
+
+        sprintf(bufferEnvio, "### %s ###", mensaje.buffer);
+        strcpy(mensaje.buffer, bufferEnvio);
+        if(!enviarMensaje(&mensaje)){
+            if(mensaje.codigo == ERROR_ENVIAR_CONEXION_CERRADA){
+                printf("Cliente %d desconectado\n", socketCliente);
+                break;
+            }
+            printf("Error al enviar mensaje\n");    
+            close(socketCliente);
+            break;
+        }
     }
 
     close(socketCliente);
-    printf("Cliente %d desconectado\n", socketCliente);
+
     pthread_mutex_lock(&mutexcantidadClientesAtendidos);
     cantidadClientesAtendidos--;
     pthread_mutex_unlock(&mutexcantidadClientesAtendidos);
     sem_post(&semaforoHilosDisponibles);
-    printf("Cantidad de clientes restantes: %d\n", cantidadClientesAtendidos);
+    
     return NULL;
 }
 
 void *monitorFinalizacion(void *arg){
-    int socketServidor = *(int *)arg;
+    int socket = *(int *)arg;
     while(1){
         sleep(ESPERA_MONITOR_FINALIZACION);
         pthread_mutex_lock(&mutexcantidadClientesAtendidos);
         if(cantidadClientesAtendidos == 0 && cantidadClientesEnEspera == 0){
             pthread_mutex_unlock(&mutexcantidadClientesAtendidos);
             printf("Todos los clientes han terminado...\n");
-            close(socketServidor);
+            close(socket);
             printf("Servidor finalizado correctamente\n");
             sem_destroy(&semaforoHilosDisponibles);
             exit(EXIT_SUCCESS);
