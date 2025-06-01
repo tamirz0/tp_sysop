@@ -19,12 +19,15 @@
 #include <stdbool.h>
 #include <errno.h>
 
+
+#define IP_SERVIDOR "127.0.0.1"
 #define PUERTO 5000
 #define MAX_CLIENTES 3
 #define MAX_ENCOLADOS 10
-#define IP_SERVIDOR "127.0.0.1"
+
+
+
 #define MAX_CADENA 1024
-#define TIMEOUT_PRIMERA_LECTURA 1
 #define ESPERA_MONITOR_FINALIZACION 1
 
 #define COMANDO_AGREGAR "/agregar"
@@ -33,6 +36,7 @@
 #define COMANDO_BUSCAR "/buscar"
 #define COMANDO_SALIR "/salir"
 
+#define DESCONOCIDO -1
 #define AGREGAR 1
 #define MODIFICAR 2
 #define ELIMINAR 3

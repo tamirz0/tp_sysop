@@ -99,5 +99,5 @@ int obtenerComando(const char * comando){
     if(strcmp(comando, COMANDO_SALIR) == 0){
         return SALIR;
     }
-    return -1;
+    return DESCONOCIDO;
 }
