@@ -209,8 +209,12 @@ int modificarProducto(Archivo * arch, Producto * producto){
         return ERR_PARAM;
     }
 
-    eliminarProducto(arch, producto);
-    agregarProducto(arch, producto);
+    if(eliminarProducto(arch, producto) == OK){
+        agregarProducto(arch, producto);
+    }
+    else{
+        return ERR_ARCH;
+    }
 
     return OK;
 }
