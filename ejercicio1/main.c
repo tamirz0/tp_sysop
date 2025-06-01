@@ -30,6 +30,13 @@
     pmap <PID> ### Ver uso de memoria del proceso, aparece miMemoria con flags RWS (read, write, shared)
     htop ### Ver procesos y uso de memoria de forma interactiva (este es genial)
     ls /dev/shm/sem.* ### Ver semaforos abiertos (al finalizar el programa, se debe eliminar el semáforo)
+
+    ls /dev/shm ### ver memoria compartida y semaforo. Al finalizar no deben aparecer.
+
+
+    MONITOR (en terminal aparte)
+        chmod +x monitor.sh
+        ./monitor.sh
 */
 
 #define NOMBRE_ARCHIVO_CSV "test.csv"

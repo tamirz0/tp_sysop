@@ -33,6 +33,11 @@
         ps -L -p <PID> ### ver los hilos del proceso
         htop ### ver los hilos del proceso *
         top -H -p <PID> ### ver los hilos del proceso *
+
+
+    MONITOR (en terminal aparte)
+        chmod +x monitor.sh
+        ./monitor.sh
 */
 
 /// VARIABLES GLOBALES ///
