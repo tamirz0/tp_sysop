@@ -82,3 +82,22 @@ bool leerMensaje(Mensaje *mensaje){
     mensaje->codigo = LEER_CORRECTO;
     return true;
 }
+
+int obtenerComando(const char * comando){
+    if(strcmp(comando, COMANDO_AGREGAR) == 0){
+        return AGREGAR;
+    }
+    if(strcmp(comando, COMANDO_MODIFICAR) == 0){
+        return MODIFICAR;
+    }
+    if(strcmp(comando, COMANDO_ELIMINAR) == 0){
+        return ELIMINAR;
+    }
+    if(strcmp(comando, COMANDO_BUSCAR) == 0){
+        return BUSCAR;
+    }
+    if(strcmp(comando, COMANDO_SALIR) == 0){
+        return SALIR;
+    }
+    return -1;
+}

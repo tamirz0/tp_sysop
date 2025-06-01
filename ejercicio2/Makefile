@@ -2,8 +2,8 @@ CC = gcc
 CFLAGS = -Wall -Wextra -g -I../lib_producto -I./lib_comunicacion
 LDFLAGS = -pthread
 
-SRCS_CLIENTE = cliente.c lib_comunicacion/comunicacion.c
-SRCS_SERVIDOR = servidor.c lib_comunicacion/comunicacion.c
+SRCS_CLIENTE = cliente.c lib_comunicacion/comunicacion.c ../lib_producto/producto.c
+SRCS_SERVIDOR = servidor.c lib_comunicacion/comunicacion.c ../lib_producto/producto.c
 
 OBJS_CLIENTE = $(SRCS_CLIENTE:.c=.o)
 OBJS_SERVIDOR = $(SRCS_SERVIDOR:.c=.o)

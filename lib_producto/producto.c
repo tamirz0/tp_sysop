@@ -221,3 +221,32 @@ void cerrarArchivo(Archivo * arch){
         arch->pf = NULL;
     }
 }
+
+Producto leerProducto(){
+    Producto producto;
+    char buffer[TAM_CADENA_SERIALIZADA];
+    
+    printf("Ingrese el ID del producto: ");
+    scanf("%d", &producto.id);
+    getchar(); // Consumir el \n del scanf anterior
+    
+    printf("Ingrese el nombre del producto: ");
+    fgets(buffer, TAM_NOMBRE, stdin);
+    buffer[strcspn(buffer, "\n")] = 0;
+    strcpy(producto.nombre, buffer);
+    
+    printf("Ingrese el precio del producto: ");
+    scanf("%lf", &producto.precio);
+    getchar(); // Consumir el \n del scanf anterior
+    
+    printf("Ingrese el stock del producto: ");
+    scanf("%d", &producto.stock);
+    getchar(); // Consumir el \n del scanf anterior
+    
+    printf("Ingrese la categoria del producto: ");
+    fgets(buffer, TAM_CATEGORIA, stdin);
+    buffer[strcspn(buffer, "\n")] = 0;
+    strcpy(producto.categoria, buffer);
+    
+    return producto;
+}

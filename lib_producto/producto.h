@@ -63,4 +63,6 @@ int eliminarProducto(Archivo * arch, Producto * producto);
 int modificarProducto(Archivo * arch, Producto * producto);
 void cerrarArchivo(Archivo * arch);
 
+Producto leerProducto();
+
 #endif // PRODUCTO_H
