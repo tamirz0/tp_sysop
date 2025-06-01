@@ -15,6 +15,26 @@
     Cuando se ejecuta un CTRL + C, finaliza el programa.
  */
 
+/*
+    EJECUCION
+    make
+    ./servidor <archivo.csv> ### En una terminal
+    ./cliente ### En diferentes terminales
+
+    MONITORIZACION
+        pidof servidor
+        pidof cliente
+    SOCKETS - CONEXIONES 
+        watch -n 1 "sudo lsof -iTCP:5000" ### ver las conexiones asociadas al puerto 5000
+        watch -n 1 "ls -l /proc/<PID>/fd | grep socket" ### ver los sockets asociados a el proceso del servidor
+        netstat -tulnp | grep 5000
+
+    HILOS (como maximo seran 5 (el principal, el monitor y los 3 clientes)) 
+        ps -L -p <PID> ### ver los hilos del proceso
+        htop ### ver los hilos del proceso
+        top -H -p <PID> ### ver los hilos del proceso
+*/
+
 #define PUERTO 5000
 
 Archivo archivoCsv;
