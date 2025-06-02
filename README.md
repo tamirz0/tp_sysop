@@ -1,13 +1,6 @@
 # tp_sysop
 Trabajo Practico de la materia Sistemas Operativos. Pensado para ejecutarse en un entorno Linux.
 
-# Integrantes
-- AVELLA, MATEO TAMIR
-- DI NUBILA, VALENTIN STEFANO DI NUBILA
-- HUEL, HERMAN NAHUEL
-- ROLLERI VILLALBA, SANTINO
-- VELIZ FANDIÑO, NICOLÁS
-
 # Diseño Funcional
 [diseño_funcional.pdf](https://github.com/user-attachments/files/20559192/diseno_funcional.pdf)
 
@@ -33,6 +26,7 @@ Para ejecutar el código de cada ejercicio, se debe seguir los siguientes pasos:
  # Monitoreo
  Para monitorear lo referido a cada ejercicio, se pueden utilizar 2 herramientas:
  - **monitor.sh**: Un script contenido en cada ejercicio que permite monitorear los recursos utilizados por cada uno.
+
  Pasos para su uso:
  1. Abrir una terminal en la carpeta del ejercicio correspondiente.
  2. ejecutar el comando `chmod +x monitor.sh` para darle permisos de ejecución al script.
