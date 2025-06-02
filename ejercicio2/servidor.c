@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define TIEMPO_EJECUCION_SIMULADO 10
+
 /*
     El servidor arranca y escucha conexiones en un puerto fijo.
     Un cliente se conecta → el servidor lanza un hilo nuevo para manejarlo.
@@ -153,10 +155,13 @@ void * manejarCliente(void * arg){
                 }
 
                 deSerializar(&producto, mensaje.buffer);
+                printf("Cliente %d SOLICITA ACCESO A CSV\n", mensaje.socket);
                 pthread_mutex_lock(&mutexArchivoCsv);
+                printf("Cliente %d: ACCESO CONCEDIDO A CSV\n", mensaje.socket);
+                sleep(TIEMPO_EJECUCION_SIMULADO);
                 resultado = agregarProducto(&archivoCsv, &producto);
                 pthread_mutex_unlock(&mutexArchivoCsv);
-
+                printf("Cliente %d: LIBERA ACCESO A CSV\n", mensaje.socket);
                 if(resultado == OK){
                     sprintf(mensaje.buffer, "%s", OPERACION_EXITO);
                     printf("PRODUCTO AGREGADO %d\n", producto.id);
@@ -177,9 +182,13 @@ void * manejarCliente(void * arg){
                 }
 
                 deSerializar(&producto, mensaje.buffer);
+                printf("Cliente %d SOLICITA ACCESO A CSV\n", mensaje.socket);
                 pthread_mutex_lock(&mutexArchivoCsv);
+                printf("Cliente %d: ACCESO CONCEDIDO A CSV\n", mensaje.socket);
+                sleep(TIEMPO_EJECUCION_SIMULADO);
                 resultado = modificarProducto(&archivoCsv, &producto);
                 pthread_mutex_unlock(&mutexArchivoCsv);
+                printf("Cliente %d: LIBERA ACCESO A CSV\n", mensaje.socket);
 
                 if(resultado == OK){
                     sprintf(mensaje.buffer, "%s", OPERACION_EXITO);
@@ -201,10 +210,13 @@ void * manejarCliente(void * arg){
                 }
 
                 deSerializar(&producto, mensaje.buffer);
+                printf("Cliente %d SOLICITA ACCESO A CSV\n", mensaje.socket);
                 pthread_mutex_lock(&mutexArchivoCsv);
+                printf("Cliente %d: ACCESO CONCEDIDO A CSV\n", mensaje.socket);
+                sleep(TIEMPO_EJECUCION_SIMULADO);
                 resultado = eliminarProducto(&archivoCsv, &producto);
                 pthread_mutex_unlock(&mutexArchivoCsv);
-
+                printf("Cliente %d: LIBERA ACCESO A CSV\n", mensaje.socket);
                 if(resultado == OK){
                     sprintf(mensaje.buffer, "%s", OPERACION_EXITO);
                     printf("PRODUCTO ELIMINADO %d\n", producto.id);
@@ -225,9 +237,13 @@ void * manejarCliente(void * arg){
                 }
 
                 deSerializar(&producto, mensaje.buffer);
+                printf("Cliente %d SOLICITA ACCESO A CSV\n", mensaje.socket);
                 pthread_mutex_lock(&mutexArchivoCsv);
+                printf("Cliente %d: ACCESO CONCEDIDO A CSV\n", mensaje.socket);
+                sleep(TIEMPO_EJECUCION_SIMULADO);
                 resultado = buscarProducto(&archivoCsv, &producto);
                 pthread_mutex_unlock(&mutexArchivoCsv);
+                printf("Cliente %d: LIBERA ACCESO A CSV\n", mensaje.socket);
 
                 if(resultado == OK){
                     serializar(&producto, mensaje.buffer);
